@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define N 5
+sem_t forks[N];
+
+void* philosopher(void* n) {
+    int i = *(int*)n;
+    while(1) {
+        printf("Philosopher %d thinking\n", i);
+        sleep(1);
+        sem_wait(&forks[i]);
+        sem_wait(&forks[(i+1)%N]);
+        printf("Philosopher %d eating\n", i);
+        sleep(1);
+        sem_post(&forks[i]);
+        sem_post(&forks[(i+1)%N]);
+    }
+}
+
+int main() {
+    pthread_t t[N];
+    int id[N];
+    for(int i=0;i<N;i++){sem_init(&forks[i],0,1);id[i]=i;pthread_create(&t[i],0,philosopher,&id[i]);}
+    for(int i=0;i<N;i++) pthread_join(t[i],0);
+}
+
+
+
+
+#output
+Philosopher 0 is thinking
+Philosopher 1 is thinking
+Philosopher 0 is eating
+Philosopher 2 is thinking
+Philosopher 1 is eating
+...
